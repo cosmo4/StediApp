@@ -1,10 +1,11 @@
 import React, { useEffect, useState, } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, AsyncStorage,TextInput, Button, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, Button, Alert } from 'react-native';
 import  Navigation from './components/Navigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnboardingScreen from './screens/OnboardingScreen';
 import Home from './screens/Home';
 import { NavigationContainer } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -80,18 +81,22 @@ return(
               }
             )
             console.log(loginResponse.status)
-
+            //const loginToken = await loginResponse.text();
+            //console.log('login token', loginToken)
+            
             if(loginResponse.status == 200) {
               const sessionToken = await loginResponse.text();
+              await AsyncStorage.setItem('Session Token', sessionToken)
               console.log('Session Token', sessionToken)
               setIsLoggedIn(true);
             }
             else{
+              console.log("token response Status", loginResponse.status)
               Alert.alert('Warning', 'An invalid Code was entered.')
             }
             
           }}
-        />      
+        ></Button>     
       </View>
       //finished buttons code
     )
