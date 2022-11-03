@@ -6,108 +6,104 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import Home from './screens/Home';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
-
-
 const AppStack = createNativeStackNavigator();
-
 const App = () =>{
   const [isFirstLaunch, setFirstLaunch] = React.useState(true);
-  const [phoneNumber, setPhoneNumber] = React.useState(true);
   const [isLoggedIn,setIsLoggedIn] = React.useState(false);
+  const [phoneNumber, setPhoneNumber] = React.useState("");
   const [homeTodayScore, setHomeTodayScore] = React.useState(0);
-  const [tempCode, setTempCode] = React.useState(null);
-
-   if (isFirstLaunch == true){
+  const [tempCode , setTempCode] = React.useState(null);
+  useEffect(()=>{
+    const getSessionToken = async() => {
+      const sessionToken = await AsyncStorage.getItem('sessionToken');
+      console.log('token from storage', sessionToken);
+      const validateResponse = await fetch('https://dev.stedi.me/validate/'+sessionToken);
+      if(validateResponse.status == 200){
+        const userEmail = await validateResponse.text();
+        console.log('userEmail', userEmail);
+        setIsLoggedIn(true);
+      }
+    }
+    getSessionToken();
+  },[])
+   if (isFirstLaunch == true &&! isLoggedIn){
 return(
   <OnboardingScreen setFirstLaunch={setFirstLaunch}/>
- 
 );
   }else if(isLoggedIn){
     return <Navigation/>
   } else{
     return (
       <View>
-        <TextInput 
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-          style={styles.input}  
-          placeholderTextColor='#4251f5' 
-          placeholder='Cell Phone'>          
+        <TextInput
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          style={styles.input}
+          placeholderTextColor='#4251F5'
+          placeholder='Cell Phone'>
         </TextInput>
         <Button
           title='Send'
           style={styles.button}
           onPress={async()=>{
-            console.log(phoneNumber +': Button was pressed')
-
+            console.log('Button was pressed')
             await fetch(
-              'https://dev.stedi.me/twofactorlogin/' + phoneNumber,
+              'https://dev.stedi.me/twofactorlogin/'+ phoneNumber,
               {
-                method:'POST',
-                headers: {
+                method: 'POST',
+                headers:{
                   'content-type' : 'application/text'
                 }
               }
             )
-            
           }}
-        />  
-        <TextInput 
+        />
+        <TextInput
         value={tempCode}
         onChangeText={setTempCode}
-          style={styles.input}  
-          placeholderTextColor='#4251f5' 
-          placeholder='Enter Code'>          
+          style={styles.input}
+          placeholderTextColor='#4251F5'
+          placeholder='Enter Code'>
         </TextInput>
         <Button
           title='Verify'
           style={styles.button}
           onPress={async()=>{
             console.log('Button 2 was pressed')
-
             const loginResponse=await fetch(
               'https://dev.stedi.me/twofactorlogin',
               {
-                method:'POST',
-                headers: {
+                method: 'POST',
+                headers:{
                   'content-type' : 'application/text'
                 },
-                body:JSON.stringify ({
+                body:JSON.stringify({
                   phoneNumber,
                   oneTimePassword:tempCode
-                })
+               })
               }
             )
-            console.log(loginResponse.status)
-            //const loginToken = await loginResponse.text();
-            //console.log('login token', loginToken)
-            
-            if(loginResponse.status == 200) {
-              const sessionToken = await loginResponse.text();
-              await AsyncStorage.setItem('Session Token', sessionToken)
-              console.log('Session Token', sessionToken)
-              setIsLoggedIn(true);
-            }
-            else{
-              console.log("token response Status", loginResponse.status)
-              Alert.alert('Warning', 'An invalid Code was entered.')
-            }
-            
+              console.log(loginResponse.status)
+              if(loginResponse.status == 200){
+                const sessionToken = await loginResponse.text();
+                await AsyncStorage.setItem('sessionToken', sessionToken)
+                console.log('session token', sessionToken);
+                setIsLoggedIn(true);
+              }
+              else{
+                console.log("token resonce Status",loginResponse.status)
+                Alert.alert('Warning' , 'An invalid Code was entered')
+              }
           }}
-        ></Button>     
+        />
       </View>
-      //finished buttons code
     )
   }
 }
  export default App;
-
- 
  const styles = StyleSheet.create({
      container:{
-         flex:1, 
+         flex:1,
          alignItems:'center',
          justifyContent: 'center'
      },
@@ -123,7 +119,7 @@ return(
       margin: 12,
       borderWidth: 1,
       padding: 10,
-      marginTop:50
+      marginTop:300
     },
      margin:{
        marginTop:100
@@ -132,5 +128,5 @@ return(
        alignItems: "center",
        backgroundColor: "#DDDDDD",
        padding: 10
-     }    
+     }
  })
