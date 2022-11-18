@@ -1,5 +1,5 @@
 
-import React, { useEffect,useState } from 'react';
+import React, { useEffect,useState, useRef } from 'react';
 import { StyleSheet, Text, View, Image, SafeAreaView , Share, ScrollView, Button, TouchableOpacity} from 'react-native';
 import { Card, CardTitle, CardContent} from 'react-native-material-cards';
 import BarChart from 'react-native-bar-chart';
@@ -21,7 +21,7 @@ const Profile = (props) => {
   const [cameraReady, setCameraReady] = useState(false);
 useEffect(()=>{
   const getUserName = async ()=>{
-    const cameraPermission = await Camera.requerstCameraPermissionAsync();
+    const cameraPermission = await Camera.requestCameraPermissionsAsync();
     console.log('Camera permission', cameraPermission);
     setCameraPermission(cameraPermission);
     const userName = await AsyncStorage.getItem('userName');
